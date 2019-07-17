@@ -1,2 +1,5 @@
 # Van_Kampen_System_Size_Expansion
-A proof of Van Kampen's system size expansion
+
+
+This document demonstrates the proof of Van Kampen’s system size expansion: a useful tool in generating closed-form approximations for the moments of the copy number of chemical species in chemical reaction networks. We pay particular attention to when we have chemical equations of the form <a href="https://www.codecogs.com/eqnedit.php?latex=xS&space;\rightarrow&space;*" target="_blank"><img src="https://latex.codecogs.com/gif.latex?xS&space;\rightarrow&space;*" title="xS \rightarrow *" /></a> where <a href="https://www.codecogs.com/eqnedit.php?latex=s&space;>&space;1" target="_blank"><img src="https://latex.codecogs.com/gif.latex?s&space;>&space;1" title="s > 1" /></a>, which induces combinatorial factors which many authors neglect to account for. We also
+emphasize that, in general, rate constants under a deterministic treatment of a chemical reaction network are not equivalent to rate constants under a stochastic treatment. This is the case even for unimolecular reactions, when the rate depends explicitly upon the state.
