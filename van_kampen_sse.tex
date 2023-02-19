@@ -1,0 +1,416 @@
+\documentclass[10pt,letterpaper]{article}
+
+% JA packages:
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{geometry}
+\geometry{verbose,tmargin=2.5cm,bottom= 1.5cm,lmargin=2.5cm,rmargin=2.5cm}
+
+\usepackage{mathtools}
+
+% Use adjustwidth environment to exceed column width (see example table in text)
+\usepackage{changepage}
+
+% Use Unicode characters when possible
+\usepackage[utf8]{inputenc}
+
+% textcomp package and marvosym package for additional characters
+\usepackage{textcomp,marvosym}
+
+% fixltx2e package for \textsubscript
+\usepackage{fixltx2e}
+
+% amsmath and amssymb packages, useful for mathematical formulas and symbols
+\usepackage{amsmath,amssymb}
+
+% cite package, to clean up citations in the main text. Do not remove.
+\usepackage{cite}
+
+% Use nameref to cite supporting information files (see Supporting Information section for more info)
+\usepackage{nameref,hyperref}
+
+% ligatures disabled
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
+
+% rotating package for sideways tables
+\usepackage{rotating}
+
+% Remove comment for double spacing
+%\usepackage{setspace} 
+%\doublespacing
+
+% Multiple bibs
+\usepackage[resetlabels]{multibib}
+%\newcites{mn,si}%
+ %        {References,
+  %        References}
+%\bibliographystylemn{bioessays}
+%\bibliographystylesi{bioessays}
+          
+\bibliographystyle{bioessays}
+
+\usepackage{cancel}
+
+\usepackage{makecell} % table break line
+
+% Bold the 'Figure #' in the caption and separate it from the title/caption with a period
+% Captions will be left justified
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,justification=raggedright,singlelinecheck=off]{caption}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CLEAN AND THEN REMOVE THESE BEFORE SUBMISSION
+\usepackage{float}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Remove brackets from numbering in List of References
+\makeatletter
+\renewcommand{\@biblabel}[1]{\quad#1.}
+\makeatother
+
+% Leave date blank
+\date{}
+
+% Can't see how to merge rows without this package. Allowed to merge rows according to http://journals.plos.org/ploscompbiol/s/tables 
+\usepackage{multirow}
+
+% Change 
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\large\itshape}{\thesubsection}{1em}{}
+
+\usepackage{breqn} %dmath
+
+%\usepackage{xr}
+%\externaldocument{Supporting_Information}
+
+%% Include all macros below
+
+\newcommand{\lorem}{{\bf LOREM}}
+\newcommand{\ipsum}{{\bf IPSUM}}
+\newcommand{\rdpsi}{r\Delta \Psi}
+\newcommand{\dpsi}{\Delta \Psi}
+
+\usepackage{framed}
+
+
+%% END MACROS SECTION
+
+\begin{document}
+\vspace*{0.35in}
+
+% Title must be 250 characters or less.
+% Please capitalize all terms in the title except conjunctions, prepositions, and articles.
+\begin{flushleft}
+{\Large
+\textbf{Van Kampen's System Size Expansion}
+}
+\newline
+
+\medskip
+
+Juvid Aryaman
+
+
+
+\end{flushleft}
+
+
+\newcommand{\step}{\mathbb{E}_i^{-S_{ij}}}
+\newcommand{\deriv}[2]{\frac{\text{d}#1}{\text{d}#2}}
+\newcommand{\pderiv}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\pdd}[3]{\frac{\partial^2#1}{\partial#2\partial#3}}
+\DeclarePairedDelimiter{\diagfences}{(}{)}
+\newcommand{\diag}{\operatorname{diag}\diagfences}
+\newcommand{\cov}{\operatorname{cov}\diagfences}
+
+\begin{abstract}
+This document demonstrates the proof of Van Kampen's system size expansion: a useful tool in generating closed-form approximations for the moments of the copy number of chemical species in chemical reaction networks. We pay particular attention to when we have chemical equations of the form $sX \rightarrow *$ where $s>1$, which induces combinatorial factors which many authors neglect to account for. We also emphasize that, in general, rate constants under a deterministic treatment of a chemical reaction network are not equivalent to rate constants under a stochastic treatment. This is the case even for unimolecular reactions, when the rate depends explicitly upon the state.
+\end{abstract}
+
+\section{Introduction}
+
+Following the notation of \cite{Grima10}, consider a general chemical system consisting of $N$ distinct chemical species ($X_i$) interacting via $R$ chemical reactions, where the $j$\textsuperscript{th} reaction is of the form
+\begin{equation}
+s_{1j}X_1+\dots+s_{Nj}X_N \xrightarrow{\hat{k}_j} r_{1j} X_1+\dots+r_{Nj}X_N.
+\end{equation}
+$s_{ij}$ and $r_{ij}$ are stoichiometric coefficients. We define $\hat{k}_j$ as the \textit{microscopic} rate constant for this reaction; the dimensionality of this parameter will vary depending upon the stoichiometric coefficients $s_{zj}$. $\hat{k}_j$ may be loosely interpreted as relating to the cross section of reaction $j$. 
+
+We begin with a stochastic approach to analysing this system. The Kolmogorov forward equation for a Markov jump process, often termed the chemical master equation (CME), describes the dynamics of the joint distribution of the state of the system and time, moving forwards through time. Defining the state of the system as $\vec{n}=(n_1,\dots,n_N)^T$, where $n_i$ is the copy number of the $i$\textsuperscript{th} species, allows us to write the CME as
+\begin{equation}
+\frac{\partial P(\vec{n},t|\vec{n}_0,t_0)}{\partial t} = \Omega \sum_{j=1}^R \left( \prod_{i=1}^N \step -1\right)\hat{f}_j(\vec{n},\Omega)P(\vec{n},t|\vec{n}_0,t_0) \label{Eq:CME}
+\end{equation}
+where $\Omega$ is the volume of the compartment in which the reactions occur (also known as the system size), $S_{ij} = r_{ij}-s_{ij}$ is the stoichiometry matrix, and $\step$ is referred to as the step operator and is defined through the relation $\step(g(\vec{n})) = g(n_1,\dots,n_i-S_{ij},\dots,n_N)$, for some arbitrary function of state $g(\vec{n})$. $\hat{f}_j(\vec{n}, \Omega)$ is the microscopic rate function of reaction $j$, which in general depends on both the state and the system size. An important quantity is the propensity function $a_j(\vec{n},t)$, defined as
+\begin{equation}
+\hat{a}_j(\vec{n},\Omega)\text{d}t := \Omega\hat{f}_j(\vec{n},\Omega)\text{d}t.
+\end{equation}
+This is the probability that, given the current state $\vec{n}$, the $j$\textsuperscript{th} reaction occurs in the time interval $[t,t+\text{d}t)$ somewhere in $\Omega$ (also referred to as the reaction hazard by other authors\cite{Wilkinson11}). $a_j(\vec{n},t)/\sum_ja_j(\vec{n},t)$ is of particular relevance in the stochastic simulation algorithm\cite{Gillespie76}, since it determines the probability that the $j$\textsuperscript{th} reaction occurs next. We will henceforth drop the conditional dependence of $P(\vec{n},t|\vec{n}_0,t_0)$ upon the initial condition $(\vec{n}_0,t_0)$ for notational convenience.
+
+For the microscopic rate function, we may write
+\begin{equation}
+\hat{f}_j(\vec{n},\Omega) = \hat{k}_j \prod_{z=1}^N \Omega^{-s_{zj}} \binom{n_z}{s_{zj}}.  \label{eq:micro_rate_fn}
+\end{equation}
+This equation counts the number of available combinations of reacting molecules\cite{Gillespie76,Wilkinson11}, whilst taking into account scaling with system size\cite{Grima10,Aryaman19b}. This is an important detail for networks containing bimolecular (and higher-order) reactions, which is sometimes overlooked in the literature relating to the system size expansion.
+
+We also introduce the deterministic rate equations (generally considered to be the macroscopic analogue of the CME) which is defined as\cite{Van92,Grima10}
+\begin{equation}
+\deriv{\phi_i}{t} = \sum_{j=1}^R S_{ij} f_j(\vec{\phi}) \label{Eq:RE}
+\end{equation}
+where $\vec{\phi}=(\phi_1, \dots, \phi_N)^T$ is the vector of macroscopic concentrations (of dimensions molecules per unit volume) and $f_j(\vec{\phi})$ is the macroscopic rate function satisfying
+\begin{equation}
+f_j(\vec{\phi}) = k_j \prod_{z=1}^N \phi_z^{s_{zj}} \label{eq:macro_rate_fn}
+\end{equation}
+where $k_j$ is the \textit{macroscopic} rate constant for the $j$\textsuperscript{th} reaction. Note that we distinguish between $\hat{k}_j$ and $k_j$ which many authors equate\cite{Grima10, Grima11, Van92} but are generally not equivalent, as we show below.
+
+\section{Relating microscopic and macroscopic rate constants}\label{sec:rcs}
+
+Since Eq.\eqref{eq:micro_rate_fn} scales as $\prod_z\Omega^{-s_{zj}}$, the probability of a reaction $j$ occurring dies away exponentially with the sum of stoichiometric coefficients $s_{zj}$. Hence we consider the four lowest-order reactions in Table~\ref{table:rel_stoch_det_const}, and derive the relationship between $\hat{k}_j$ and $k_j$. The general approach used\cite{Wilkinson11} is to compute the rate of production/consumption of a chemical species in both the deterministic (Eq.\eqref{Eq:RE}) and stochastic (Eq.\eqref{Eq:CME}) settings, and then equate these two rates. We show this calculation in more detail for the case of a second-order bimolecular reaction involving one species. Consider the annihilation reaction
+\begin{equation}
+2X \xrightarrow{\hat{k}} \emptyset.
+\end{equation}
+The CME for this reaction is
+\begin{equation}
+\frac{\partial P(n_x,t)}{\partial t} = \Omega \left( \mathbb{E}_X^2 - 1 \right) \frac{\hat{k}n_x (n_x - 1)}{2\Omega^2} P(n_x,t) \label{eq:bimol1_CME}
+\end{equation}
+and the deterministic reaction equation is
+\begin{equation}
+\deriv{\phi_x}{t} = -2k\phi_x^2 \label{eq:bimol1_RE}
+\end{equation}
+where again, we have not enforced $\hat{k}=k$. To determine the relationship between $\hat{k}$ and $k$, we equate the rate of consumption of particles in both Eq.\eqref{eq:bimol1_CME} and Eq.\eqref{eq:bimol1_RE}, to derive a condition on the rate constants\cite{Wilkinson11}. 
+
+For Eq.\eqref{eq:bimol1_CME}, the reaction rate is $\hat{k}n_x(n_x-1)/(2\Omega)$, where every reaction consumes 2 molecules of $X$, hence the total rate of consumption of $X$ is $\hat{k}n_x(n_x-1)/\Omega$ molecules s\textsuperscript{-1}, which we may approximate as $\hat{k}n_x^2/\Omega$ molecules s\textsuperscript{-1} in the limit of large copy numbers. Now, in order to determine the rate of consumption of molecules for the deterministic reaction equation Eq.\eqref{eq:bimol1_RE}, we require some means of connecting the macroscopic concentration $\phi_x$ to the number of molecules $n_x$. The starting point for the system size expansion is the assumption that
+\begin{equation}
+\frac{n_i}{\Omega} = \phi_i + \Omega^{-1/2}\xi_i \label{eq:sse_asumpt}
+\end{equation}
+where $\xi_i$ is a continuous random variable. Since the system size expansion is in the large copy number limit\cite{Van92, Grima11}, the noise term is in some sense ``small''. Hence, at a macroscopic level, we may say that
+\begin{equation}
+\frac{n_i}{\Omega} \approx \phi_i
+\end{equation}
+hence the rate of consumption of molecules in Eq.\eqref{eq:bimol1_RE} is approximately $2kn_x^2/\Omega$ molecules s\textsuperscript{-1}. Equating these rates, we find that
+\begin{equation}
+\hat{k} = 2k \label{eq:rc_neq_bimol1}
+\end{equation}
+is a necessary constraint for the rate of consumption of molecules to be the same in Eq.\eqref{eq:bimol1_CME} and Eq.\eqref{eq:bimol1_RE} in the large copy number limit, see \cite{Wilkinson11, Gillespie07,Gillespie76}. Of the four elementary reactions considered in Table~\ref{table:rel_stoch_det_const}, this reaction is the only case where $\hat{k} \neq k$, although we  generally expect that this is true for all reactions of the form $s_{zj}X \rightarrow *$ where $s_{zj} > 1$.
+
+
+\begin{table}
+\centering
+\caption{Relationship between stochastic rate constants $\hat{k}$ and deterministic rate constants $k$ for simple examples of four elementary reactions. Equating the rate of consumption/production of molecules for deterministic and stochastic dynamical equations\cite{Wilkinson11} allows us to derive a relationship between $\hat{k}$ and $k$. We see that $\hat{k}=k$ except for second-order bimolecular reactions involving one species, where $2k = \hat{k}$. However, it is assumed in the derivation of the system size expansion that $k=\hat{k}$ for all molecular reactions. See main text for further details of the calculation.}
+\label{table:rel_stoch_det_const}
+\begin{tabular}{c|c|c|c|c}
+Order & Reaction form & \thead{Deterministic rate \\equation} & \thead{Chemical Master \\Equation} & \thead{Rate constant\\ relationship} \\ \hline
+  0    & $\emptyset\xrightarrow{\hat{k}} X$ & $\deriv{}{t}(\frac{n_x}{\Omega})=k$ & $\partial_t P = \Omega (\mathbb{E}^{-1}-1)\hat{k} P$ & \makecell{$k \Omega = \hat{k} \Omega$\\$\implies k=\hat{k}$ }               \\ \hline
+  1   &  $X\xrightarrow{\hat{k}} \emptyset$ & $\deriv{}{t}(\frac{n_x}{\Omega})=-\frac{k n_x}{\Omega}$ & $\partial_t P = \Omega (\mathbb{E}-1)\frac{\hat{k}n_x}{\Omega} P$ & \makecell{$kn_x=\hat{k}n_x$\\$\implies k=k$ }               \\ \hline
+  \makecell{2\\(2 species)}   &$X+Y\xrightarrow{\hat{k}} \emptyset$ & $\deriv{}{t}(\frac{n_x}{\Omega})=-\frac{kn_x n_y}{\Omega^2}$ & $\partial_t P = \Omega(\mathbb{E}_X\mathbb{E}_Y - 1)\frac{\hat{k}n_x n_y}{\Omega^2}P$& \makecell{$kn_xn_y = \hat{k}n_xn_y$\\$\implies k=\hat{k}$ }  \\ \hline
+ \makecell{2\\(1 species)}   &$2X\xrightarrow{\hat{k}} \emptyset$ & $\deriv{}{t}(\frac{n_x}{\Omega})=-\frac{2kn_x^2}{\Omega^2}$ & $\partial_t P = \Omega(\mathbb{E}^2 - 1)\frac{\hat{k}n_x(n_x-1)}{2\Omega^2}P$& \makecell{$2kn_x^2 = 2 \times \frac{\hat{k}}{2}n_x(n_x-1)$\\$\approx 2 \times \frac{\hat{k}}{2}n_x^2$ \\ $\implies 2k = \hat{k}$ }
+\end{tabular}
+\end{table}
+
+We can show this by deriving the general relationship between $k_j$ and $\hat{k}_j$. From the example above, we see that we enforced the condition $s_{zj}\Omega \hat{f}_j= s_{zj} \Omega f_j$, i.e.\ $\hat{f}_j = f_j$. Equating Eq.\eqref{eq:micro_rate_fn} and Eq.\eqref{eq:macro_rate_fn}, and using the approximate relation $\phi_i\approx n_i/\Omega$ for large copy numbers, results in the condition
+\begin{equation}
+k_j \approx \hat{k}_j\prod_{z=1}^N \frac{n_z!}{n_z^{s_{zj}}s_{zj}!(n_z-s_{zj})!}. \label{eq:micro_macro_rc_exact}
+\end{equation}
+We see for the case of $N=1$ and $s_{zj}=0,1$, $k_j=\hat{k}_j$. When $N=1$ and $s_{zj}=2$ (i.e. $2X\rightarrow *$), $k_j=\hat{k}_j (n_z-1)!/(2n_z(n_z-2)!)$. Using the limit of large copy numbers, we may further simplify Eq.\eqref{eq:micro_macro_rc_exact} using the approximation $n_z! \approx n_z^{s_{zj}}(n_z - s_{zj})!$ to yield \cite{Aryaman19b}
+\begin{equation}
+\boxed{k_j \approx \hat{k}_j \prod_{z=1}^N \frac{1}{s_{zj}!}}. \label{eq:micro_macro_rc}
+\end{equation}
+In the case of $2X \rightarrow *$, this results in  $k_j = \hat{k}_j/2$, as we found above.
+
+\section{The system size expansion}\label{sec:sse_proof}
+The following derivation of the system size expansion is in the spirit of the one presented by Grima \cite{Grima10}, but takes into account the relationship between macroscopic and microscopic rate constants. Our general approach is to expand both sides of the chemical master equation (Eq.\eqref{Eq:CME}) and generate constraints on the dynamics by collecting powers of $\Omega$.
+
+We begin by noting that, by using Eq.\eqref{eq:sse_asumpt}, $P(\vec{n},t) = P(\Omega \vec{\phi} + \Omega^{1/2} \vec{\xi},t)$. We are interested in determining the dynamics of the noise $\vec{\xi}$ at some fixed $\vec{n}$, so we redefine $P(\vec{n},t)$ in terms of the variable of interest $\vec{\xi}$ such that $\Pi(\vec{\xi},t):= P(\vec{n},t)$. Then the total derivative of $\Pi(\vec{\xi},t)$ with respect to time is
+\begin{equation}
+\deriv{\Pi(\vec{\xi},t)}{t}= \pderiv{\Pi(\vec{\xi},t)}{t} + \sum_{i=1}^N \pderiv{\Pi}{\xi_i} \pderiv{\xi_i}{t}.
+\end{equation}
+However, given Eq.\eqref{eq:sse_asumpt}, and our aim of determining the instantaneous derivative of $\Pi(\vec{\xi},t)$ at fixed copy number $\vec{n}$, then $\partial n_i / \partial t = 0$, and therefore
+\begin{equation}
+\deriv{\Pi(\vec{\xi},t)}{t}= \pderiv{\Pi(\vec{\xi},t)}{t} - \Omega^{1/2} \sum_{i=1}^N \pderiv{\Pi}{\xi_i} \deriv{\phi_i}{t}. \label{eq:exp_pi}
+\end{equation}
+
+We now wish to expand the terms on the right-hand side of Eq.\eqref{Eq:CME} in powers of $\Omega$. Firstly, let us expand the step operator $\step$ acting on an arbitrary function of state $g(\vec{n})$. To do this, we first define the change in copy number associated with reaction $j$, $\Delta\vec{n}=(S_{1j},\dots,S_{Nj})$ and observe that
+\begin{eqnarray}
+\prod_{i=1}^N\step\left[g(\vec{n})\right] &=& g(\vec{n}-\Delta\vec{n}) \nonumber \\
+&=& g(\vec{n}) - \sum_{i=1}^NS_{ij}\pderiv{g}{n_i} + \frac{1}{2}\sum_{i,k=1}^N S_{ij}S_{kj} \pdd{g}{n_i}{n_k} + \mathcal{O}(\Delta\vec{n}^3) \nonumber \\
+&=& g(\vec{n}) - \Omega^{-1/2}\sum_{i=1}^NS_{ij}\pderiv{g}{\xi_i} + \frac{1}{2}\Omega^{-1}\sum_{i,k=1}^N S_{ij}S_{kj} \pdd{g}{\xi_i}{\xi_k} + \mathcal{O}(\Omega^{-3/2}) \label{eq:exp_step} 
+\end{eqnarray}
+where we have performed a Taylor expansion around $g(\vec{n})$. The final line follows from Eq.\eqref{eq:sse_asumpt} and the chain rule.
+
+Next, we expand $\hat{f}_j(\vec{n},\Omega)$ by substituting Eq.\eqref{eq:sse_asumpt} into the numerator of Eq.\eqref{eq:micro_rate_fn} 
+\begin{eqnarray}
+\hat{f}_j(\vec{n},\Omega) &=& \hat{k}_j \prod_{z=1}^N \frac{1}{\Omega^{s_{zj}}} \frac{n_z!}{s_{zj}!(n_z-s_{zj})!} \nonumber \\
+&=& \hat{k}_j \prod_{z=1}^N \frac{1}{\Omega^{s_{zj}}} \frac{(\Omega\phi_z + \Omega^{1/2}\xi_z)(\Omega\phi_z + \Omega^{1/2}\xi_z-1)\times\dots\times(n_z-s_{zj})!}{s_{zj}!(n_z-s_{zj})!}. 
+\end{eqnarray}
+Using the relationship between macroscopic and microscopic rate constants in Eq.\eqref{eq:micro_macro_rc}, the denominator $s_{zj}!(n_z-s_{zj})!$ approximately cancels to give
+\begin{eqnarray}
+&\approx& k_j \prod_{z=1}^N \left\{ \frac{1}{\Omega^{s_{zj}}} (\Omega\phi_z + \Omega^{1/2}\xi_z)(\Omega\phi_z + \Omega^{1/2}\xi_z-1)\times\dots\times(\Omega\phi_z +\Omega^{1/2}\xi_z-[s_{zj} - 1]) \right\} \nonumber \\
+&=& k_j \prod_{z=1}^N \left\{\frac{1}{\Omega^{s_{zj}}} \left[ \Omega^{s_{zj}}\phi_z^{s_{zj}} + \Omega^{s_{zj}-1}\Omega^{1/2}\phi_z^{s_{zj}-1}\xi_z \cdot s_{zj} + \mathcal{O}(\Omega^{s_{zj}-1})\right] \right\}
+\end{eqnarray}
+where $s_{zj}$ arises in product with the term $F = \Omega^{s_{zj}-1}\Omega^{1/2}\phi_z^{s_{zj}-1}\xi_z$ because there are $s_{zj}$ terms in parentheses in the preceding line, each of which yields a factor of $F$ when multiplied out. This leads to 
+\begin{eqnarray}
+&=& k_j \prod_{z=1}^N  \left[ \phi_z^{s_{zj}} + \Omega^{-1/2}\frac{s_{zj}}{\phi_z}\phi_z^{s_{zj}}\xi_z + \mathcal{O}(\Omega^{-1})\right] \nonumber \\
+&=& \underbrace{k_j \prod_{z=1}^N \phi_z^{s_{zj}}}_{f_j(\vec{\phi})} + \sum_{w=1}^N\left(k_j \left[\prod_{z\neq w, z=1}^N \phi_z^{s_{zj}} \right]\left[\Omega^{-1/2}\frac{s_{wj}}{\phi_w} \phi_w^{s_{wj}}  \xi_w \right]\right) + \mathcal{O}(\Omega^{-1}) \nonumber \\
+&=& f_j(\vec{\phi}) + \Omega^{-1/2}\sum_{w=1}^N \left(\frac{\xi_w}{\phi_w} s_{wj} \left[ k_j \prod_{z=1}^N \phi_z^{s_{zj}} \right] \right) + \mathcal{O}(\Omega^{-1})\nonumber \\
+&=& f_j(\vec{\phi}) + \Omega^{-1/2}\sum_{w=1}^N \xi_w \frac{s_{wj}}{\phi_w}  f_j(\vec{\phi}) + \mathcal{O}(\Omega^{-1})
+\end{eqnarray}
+However, from the definition of $f_j(\vec{\phi})$ in Eq.\eqref{eq:macro_rate_fn}, it is clear that
+\begin{equation}
+\pderiv{f_j}{\phi_w} = \frac{s_{wj}}{\phi_w}f_j(\vec{\phi}).
+\end{equation}
+Hence,
+\begin{equation}
+\hat{f}_j(\vec{n},\Omega) = f_j(\vec{\phi}) + \Omega^{-1/2}\sum_{w=1}^N \xi_w \pderiv{f_j}{\phi_w} + \mathcal{O}(\Omega^{-1}). \label{eq:exp_macro_rate_fn}
+\end{equation}
+
+We may now combine Eq.\eqref{Eq:CME}, Eq.\eqref{eq:exp_pi}, Eq.\eqref{eq:exp_step} and Eq.\eqref{eq:exp_macro_rate_fn} to yield an expansion of the chemical master equation in powers of $\Omega$
+\begin{dmath}
+\pderiv{\Pi(\vec{\xi},t)}{t} - \Omega^{1/2} \sum_{i=1}^N \pderiv{\Pi}{\xi_i} \deriv{\phi_i}{t} =\\ \Omega \sum_{j=1}^R\left\{ \left(- \Omega^{-1/2} \sum_{i=1}^NS_{ij}\pderiv{}{\xi_i} + \frac{1}{2}\Omega^{-1}\sum_{i,k=1}^N S_{ij}S_{kj} \pdd{}{\xi_i}{\xi_k} + \mathcal{O}(\Omega^{-3/2}) \right) \right\}\times\\\left(f_j(\vec{\phi}) + \Omega^{-1/2}\sum_{w=1}^N \xi_w \pderiv{f_j}{\phi_w} + \mathcal{O}(\Omega^{-1}) \right) \Pi(\vec{\xi},t).
+\end{dmath}
+Collecting powers of $\Omega^{1/2}$ gives
+\begin{equation}
+-\sum_{i=1}^N \pderiv{\Pi}{\xi_i} \deriv{\phi_i}{t} = -\sum_{j=1}^R \sum_{i=1}^NS_{ij}\pderiv{}{\xi_i} f_j(\vec{\phi})\Pi
+\end{equation}
+but the definition of the macroscopic rate equation (Eq.\eqref{Eq:RE}) means that both sides of the equation cancel resulting in no constraint upon the dynamics of $\Pi(\vec{\xi},t)$. Collecting powers of $\Omega^0$ yields the familiar result, termed the linear noise approximation:
+\begin{eqnarray}
+\pderiv{\Pi(\vec{\xi},t)}{t} &=& \sum_{j=1}^R\left( \frac{1}{2} \sum_{i,k=1}^N S_{ij}S_{kj} \pdd{}{\xi_i}{\xi_k} f_j(\vec{\phi}) \Pi(\vec{\xi},t) - \sum_{i,k=1}^N S_{ij} \pderiv{}{\xi_i}\xi_k \pderiv{f_j}{\phi_k} \Pi(\vec{\xi},t)\right) \nonumber \\
+&=& \sum_{j=1}^R\left(- \sum_{i,k=1}^N S_{ij} \pderiv{f_j}{\phi_k} \pderiv{(\xi_k \Pi)}{\xi_i}  + \frac{f_j(\vec{\phi})}{2}\sum_{i,k=1}^N S_{ij} S_{kj} \pdd{\Pi}{\xi_i}{\xi_k} \right).
+\end{eqnarray}
+This can be written as
+\begin{equation}
+\pderiv{\Pi(\vec{\xi},t)}{t} = - \sum_{i,k=1}^N A_{ik} \pderiv{(\xi_k \Pi)}{\xi_i} + \frac{1}{2} \sum_{i,k=1}^N B_{ik} \pdd{\Pi}{\xi_i}{\xi_k} \label{eq:sse}
+\end{equation}
+where
+\begin{equation}
+A_{ik} = \sum_{j=1}^R S_{ij} \pderiv{f_j}{\phi_k} = \pderiv{(\mathbf{S}_i\cdot \mathbf{f})}{\phi_k}
+\end{equation}
+and 
+\begin{equation}
+B_{ik} = \sum_{j=1}^R  S_{ij} S_{kj} f_j(\vec{\phi}) = [\mathbf{S}\diag{f(\vec{\phi})}\mathbf{S}^T]_{ik}
+\end{equation}
+
+\section{Moments of noise terms}
+
+\newcommand{\lpi}{\Pi(\vec{\xi},t)}
+\newcommand{\intxi}[1]{\int_{-\infty}^{\infty} #1\ \text{d}\vec{\xi}}
+If the initial condition for Eq.\eqref{eq:sse} is a delta function, then it turns out that the solution for $\Pi(\vec{\xi},t)$ is a Gaussian\cite{Van92}. We now compute the mean and covariance of arbitrary components of noise $\xi_j$, which fully specifies the solution to Eq.\eqref{eq:sse} for such an initial condition. 
+
+We begin with the mean of noise component $\xi_j$ by observing
+\begin{equation}
+\pderiv{\langle \xi_j \rangle}{t} = \pderiv{}{t}\intxi{\xi_j \lpi} = \cancel{\intxi{\Pi\partial_t\xi_j}} + \intxi{\xi_j\partial_t\Pi}
+\end{equation}
+where $\intxi{\ast}$ is a volume integral over all possible values of $\vec{\xi}$. The first term vanishes since $\xi_j$ has no explicit time dependence. Substituting Eq.\eqref{eq:sse} yields
+\begin{equation}
+\pderiv{\langle \xi_j \rangle}{t} = - \sum_{ik}A_{ik}\underbrace{\intxi{\xi_j\pderiv{(\xi_k\Pi)}{\xi_i}}}_{=I_1} + \frac{1}{2}\sum_{ik}B_{ik}\underbrace{\intxi{\xi_j \pdd{\Pi}{\xi_i}{\xi_k}}}_{=I_2}.
+\end{equation}
+To evaluate integrals $I_1$ and $I_2$, we make use of the multivariate integration by parts identity
+\begin{equation}
+\int_\Omega \pderiv{u}{x_i}v\ \text{d}\Omega = \int_\Gamma uv \hat{\nu}_i\ \text{d}\Gamma - \int_\Omega u \pderiv{v}{x_i}\ \text{d}\Omega
+\end{equation}
+where $\text{d}\Omega$ is a volume element, $\Gamma$ is the surface boundary of the volume $\Omega$ and $\hat{\nu}_i$ is the $i$\textsuperscript{th} component of a unit vector perpendicular to the surface $\Gamma$. Then,
+\begin{eqnarray}
+I_1 &=& \int_{\Gamma_\infty} \xi_j \xi_k  \Pi \hat{\nu}_i\ \text{d}\Gamma - \intxi{\xi_k \Pi \pderiv{\xi_j}{\xi_i}} \nonumber \\
+&=& - \delta_{ij} \langle \xi_k \rangle
+\end{eqnarray}
+where $\delta_{ij}$ is the Kronecker delta function. For the first term, since $\lpi$ is a probability distribution, its support vanishes as $\xi_i \rightarrow \infty$, hence the support on the shell $\Gamma_\infty$ is zero. For the second term, we have assumed that the noise terms are independent hence $\partial \xi_i/\partial \xi_j = \delta_{ij}$. For $I_2$, we have
+\begin{eqnarray}
+I_2 &=& \intxi{\xi_j \pderiv{}{\xi_i}\left[\pderiv{\Pi}{\xi_k}\right]}\nonumber\\
+&=& \int_{\Gamma_\infty} \pderiv{\Pi}{\xi_k} \xi_j \hat{\nu}_i\ \text{d}\Gamma - \intxi{\pderiv{\Pi}{\xi_k}\pderiv{\xi_j}{\xi_i}} \nonumber \\
+&=& - \delta_{ij} \intxi{ \pderiv{\Pi}{\xi_k}} \nonumber \\
+&=& -\delta_{ij} \left[\int_{\Gamma_\infty} \Pi \hat{\nu}\ \text{d}\Gamma - \intxi{\Pi \cdot 0}\right] \nonumber \\
+&=& 0,
+\end{eqnarray}
+where we have assumed that the first derivative of $\lpi$ vanishes on $\Gamma_\infty$. Using these results, we may finally write\cite{Van92}
+\begin{equation}
+\pderiv{\langle \xi_j \rangle}{t} = \sum_{k=1}^N A_{jk} \langle\xi_k \rangle
+\end{equation}
+whose general solution is\cite{Van92}
+\begin{equation}
+\langle \xi \rangle_t = e^{tA}\xi_0.
+\end{equation}
+
+For the covariance, we first compute $\partial_t\langle\xi_j \xi_l \rangle$ using similar arguments
+\begin{equation}
+\pderiv{\langle\xi_j \xi_l \rangle}{t} = - \sum_{ik}A_{ik}\intxi{\xi_j \xi_l \pderiv{(\xi_k \Pi)}{\xi_i}} + \frac{1}{2}\sum_{ik}B_{ik} \intxi{\xi_j \xi_l \pdd{\Pi}{\xi_i}{\xi_k}}.
+\end{equation}
+Applying integration by parts to the two integrals yields
+\begin{equation}
+\pderiv{\langle\xi_j \xi_l \rangle}{t} = - \sum_{ik} A_{ik}\left(-\delta_{ij}\langle \xi_k \xi_l \rangle - \delta_{il} \langle \xi_k \xi_j \rangle \right) + \frac{1}{2}\sum_{ik} B_{ik} \left(\delta_{ij}\delta_{lk} + \delta_{il}\delta_{jk}\right).
+\end{equation}
+Using the fact that $B_{ik}$ is a symmetric matrix yields
+\begin{equation}
+\pderiv{\langle\xi_j \xi_l \rangle}{t} = \sum_k A_{jk}\langle \xi_k \xi_l\rangle + \sum_k A_{lk}\langle \xi_k \xi_j \rangle + B_{jl}.
+\end{equation}
+Given that covariance obeys
+\begin{equation}
+\cov{\xi_j, \xi_l} = \langle \xi_j \xi_l \rangle - \langle\xi_j\rangle\langle\xi_l\rangle,
+\end{equation}
+it follows that
+\begin{equation}
+\pderiv{}{t}\cov{\xi_j, \xi_l} =  \sum_k A_{jk}\cov{\xi_k, \xi_l} + \sum_k A_{lk}\cov{\xi_k, \xi_j} + B_{jl}.
+\end{equation}
+Denoting the covariance matrix as $\Sigma$, the general solution is \cite{Van92}
+\begin{equation}
+\Sigma(t) = \int_0^t e^{(t-t')A} B e^{(t-t')A^T}\ \text{d}t'.
+\end{equation}
+
+\section{State-dependent rates}
+
+Up to now, we have assumed that $k_j$ and $\hat{k}_j$ are constants. However, we are often interested in the case of when these vary with the state of the chemical system, i.e.\ $k_j = k_j(\vec{n})$ and $\hat{k}_j = \hat{k}_j(\vec{n})$. For example, this would be an appropriate model for a cell applying a state-dependent control strategy on the copy number of the chemical species in the reaction network by varying production/degradation rates. We will now show that, in the case of when $\hat{k}_j(\vec{n})$ is a linear function of state $\vec{n}$, the linear noise approximation (Eq.\eqref{eq:sse}) holds. 
+
+Let 
+\begin{eqnarray}
+\hat{k}_j(\vec{n}) = \hat{\alpha}_j + \sum_{z=1}^N \hat{\beta}_{jz} n_z \\
+k_j(\vec{\phi}) = \alpha_j + \sum_{z=1}^N \beta_{zj} \phi_z.
+\end{eqnarray}
+We first seek to determine the relationship between the constants $\alpha, \hat{\alpha}, \beta$ and $\hat{\beta}$. We again enforce the condition used in Section~\ref{sec:rcs}, namely
+\begin{eqnarray}
+\hat{f}_j(\vec{n}, \Omega) &=& f_j(\vec{\phi})\quad \forall\ j \\
+\implies \left[\hat{\alpha}_j + \sum_{y=1}^N \hat{\beta}_{yj}n_y\right]\prod_{z=1}^N \Omega^{-s_{zj}}\frac{n_z!}{s_z!(n_z-s_z)!} &=& \left[ \alpha_j + \sum_{y=1}^N \beta_{yj} \phi_y \right] \prod_{z=1}^N \phi_z^{s_{zj}}.
+\end{eqnarray}
+Using the approximations $n_i/\Omega \approx \phi_i$ and $n_z! \approx n_z^{s_{zj}}(n_z - s_{zj})!$ (see Section~\ref{sec:rcs}), after some simplification, yields the approximate relationship
+\begin{equation}
+\left[\hat{\alpha}_j + \sum_{y=1}^N \hat{\beta}_{yj} \phi_y \Omega \right] \prod_{z=1}^N \frac{1}{s_{zj}!} \approx \alpha_j + \sum_{y=1}^N \beta_{yj}\phi_y
+\end{equation}
+leading to the following conditions
+\begin{eqnarray}
+\hat{\alpha}_j \prod_{z=1}^N \frac{1}{s_{zj}!} = \alpha_j \nonumber \\
+\Omega \hat{\beta}_{yj} \prod_{z=1}^N \frac{1}{s_{zj}!} = \beta_{yj}. \label{eq:micro_macro_rc_state}
+\end{eqnarray}
+
+Given these relationships between the microscopic and macroscopic parametrizations of the rates, we may now show that the linear noise approximation holds. Most of the ingredients of the proof are identical to Section~\ref{sec:sse_proof}, since the expansions of the total derivative $\text{d}\Pi/\text{d}t$ and the step operator $\step$ do not depend on $k_j(\vec{\phi})$ or $\hat{k}_j(\vec{n})$. However, we must now expand $\hat{f}_j(\vec{n},\Omega)$ taking the state-dependence of $\hat{k}_j(\vec{n})$ into account. 
+
+We first compute $\partial f_j/ \partial \phi_w$, since we expect this term to occur from Eq.\eqref{eq:sse}  
+\begin{eqnarray}
+\pderiv{f_j}{\phi_w} &=& \left[ \alpha_j + \sum_{y=1}^N \beta_{yj} \phi_y \right] s_{wj}\phi_w^{s_{wj} - 1} \left[\prod_{z \neq w, z = 1}^N\phi_z^{s_{zj}}\right] + \beta_{jw}\prod_{z = 1}^N\phi_z^{s_{zj}}\nonumber \\
+\pderiv{f_j}{\phi_w} &=& \frac{s_{wj}}{\phi_w}f_j(\vec{\phi}) + \frac{\beta_{jw} f_j(\vec{\phi})}{k_j(\vec{\phi})}. \label{eq:deriv_macro_rfn_state}
+\end{eqnarray}
+Now we may expand $\hat{f}_j(\vec{n},\Omega)$ in powers of $\Omega$
+\begin{equation}
+\hat{f}_j(\vec{n},\Omega) = \left[ \hat{\alpha}_j + \sum_{y=1}^N \hat{\beta}_{yj} n_y \right] \prod_{z=1}^N \frac{1}{\Omega^{s_{zj}}} \frac{n_z!}{s_{zj}!(n_z-s_{zj})!}. 
+\end{equation}
+Using the relationship between macroscopic and microscopic rates in Eq.\eqref{eq:micro_macro_rc_state}, we may write
+\begin{eqnarray}
+&\approx& \left[ \alpha_j + \frac{1}{\Omega}\sum_{y=1}^N \beta_{yj} (\phi_y \Omega + \Omega^{1/2} \xi_y) \right] \prod_{z=1}^N \left\{ \frac{1}{\Omega^{s_{zj}}} \frac{s_{zj}!}{s_{zj}!}\left[ \Omega^{s_{zj}}\phi_z^{s_{zj}} + \Omega^{s_{zj}-1}\Omega^{1/2}\phi_z^{s_{zj}-1}\xi_z \cdot s_{zj} + \mathcal{O}(\Omega^{s_{zj}-1})\right] \right\} \nonumber \\
+&=&  \left[ \alpha_j +\sum_{y=1}^N \beta_{yj} (\phi_y + \Omega^{-1/2} \xi_y) \right] \prod_{z=1}^N  \left[ \phi_z^{s_{zj}} + \Omega^{-1/2}\frac{s_{zj}}{\phi_z}\phi_z^{s_{zj}}\xi_z + \mathcal{O}(\Omega^{-1})\right] \nonumber \\
+&=&  \left[ \alpha_j +\sum_{y=1}^N \beta_{yj} \phi_y + \Omega^{-1/2} \sum_{x=1}^N \beta_{xj} \xi_x \right]\left[ \prod_{z=1}^N \phi_z^{s_{zj}} + \sum_{w=1}^N \Omega^{-1/2}\left(\prod_{z=1}^N \phi_z^{s_{zj}}\right) \frac{s_{wj}}{\phi_w}\xi_w + \mathcal{O}(\Omega^{-1}) \right] \nonumber\\
+&=& \left( \alpha_j +\sum_{y=1}^N \beta_{yj} \phi_y \right) \prod_{z=1}^N \phi_z^{s_{zj}} + \Omega^{-1/2} \left(\sum_{x=1}^N \beta_{xj} \xi_x \right) \prod_{z=1}^N \phi_z^{s_{zj}}\nonumber \\
+&\qquad& + \left( \alpha_j +\sum_{y=1}^N \beta_{yj} \phi_y \right) \left(\Omega^{-1/2} \sum_{w=1}^N \left(\prod_{z=1}^N \phi_z^{s_{zj}}\right) \frac{s_{wj}}{\phi_w}\xi_w \right) + \mathcal{O}(\Omega^{-1}) \nonumber \\
+&=& f_j(\vec{\phi}) + \Omega^{-1/2} k_j(\vec{\phi}) \left[\prod_{z=1}^N \phi_z^{s_{zj}} \right] \left(\sum_{w=1}^N \xi_w \left(\frac{s_{wj}}{\phi_w} + \frac{\beta_{xj}}{k_j(\vec{\phi})} \right) \right) + \mathcal{O}(\Omega^{-1})  \nonumber \\
+&=& f_j(\vec{\phi}) + \Omega^{-1/2} f_j(\vec{\phi}) \sum_{w=1}^N \xi_w \left(\frac{s_{wj}}{\phi_w} + \frac{\beta_{xj}}{k_j(\vec{\phi})} \right) + \mathcal{O}(\Omega^{-1}) \nonumber \\
+&=&  f_j(\vec{\phi}) + \Omega^{-1/2}\sum_{w=1}^N \xi_w \pderiv{f_j}{\phi_w} + \mathcal{O}(\Omega^{-1})
+\end{eqnarray}
+where we used Eq.\eqref{eq:deriv_macro_rfn_state} to derive the final line, as required (see Eq.\eqref{eq:exp_macro_rate_fn}). The rest of the proof follows exactly as shown in Section~\ref{sec:sse_proof}. Although this has been demonstrated for rates which are linear in the state only, we expect the following to approximately hold for any rate function in the long-time limit, with small deviations from the steady state. This is because any function $\hat{k}_j(\vec{n})$ may be Taylor expanded around the steady state and truncated to first order, yielding a linear function in state.
+
+\section*{Acknowledgments}
+
+I would like to thank Ferdinando Insalata for his critical reading and feedback on this document.
+
+
+\bibliography{/home/juvid/Dropbox/Work/Mit_and_Metabolism/bib_mit_met.bib}
+
+
+\end{document}
+
